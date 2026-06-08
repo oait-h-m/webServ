@@ -22,6 +22,7 @@ public:
     const std::string& getMethod() const;
     const std::string& getUri() const;
     const std::string& getVersion() const;
+    const std::string& getBody() const;
     void printHeaders() const;
 };
 
