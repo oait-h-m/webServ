@@ -1,17 +1,5 @@
 #include "httpRequestParser.hpp"
 
-static std::string getFirstLine(const std::string& rawRequest, size_t &pos)
-{
-    pos = rawRequest.find("\r\n");
-
-    if (pos == std::string::npos)
-        return rawRequest;
-
-    return rawRequest.substr(0, pos);
-}
-
-
-
 const std::string& httpRequest::getMethod() const
 {
     return method;
