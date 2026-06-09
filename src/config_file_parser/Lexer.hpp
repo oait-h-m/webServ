@@ -22,12 +22,13 @@ class Lexer {
 		void _strip_comments(std::string &buffer);
 		bool _is_symbol(char c);
 		TokenType _identify_token(const std::string &word);
+		size_t	extract_token(std::string &line, size_t peek, Token &token);
 
 	public:
 		void open_config_file(const std::string &file_path);
 		Lexer(void);
 		Lexer(const std::string &file_path);
-		std::vector<Token> tokenize(void);
+		std::vector<Token> tokenizer(void);
 		~Lexer();
 };
 

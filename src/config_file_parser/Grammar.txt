@@ -1,0 +1,16 @@
+<config>            ::= <directive_list> TOK_EOF
+
+<directive_list>    ::= <directive> 
+                      | <directive> <directive_list>
+
+<directive>         ::= <simple_directive> 
+                      | <block_directive>
+
+<simple_directive>  ::= TOK_WORD <parameter_list> TOK_SEM
+
+<parameter_list>    ::= TOK_WORD 
+                      | TOK_WORD <parameter_list>
+
+<block_directive>   ::= TOK_WORD [ <block_argument> ] TOK_OPEN_BR <directive_list> TOK_CLOSE_BR
+
+<block_argument>    ::= TOK_WORD
