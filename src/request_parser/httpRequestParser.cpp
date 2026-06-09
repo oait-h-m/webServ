@@ -73,8 +73,16 @@ void httpRequest::parse(const std::string& rawRequest)
 
         if (headers.count("Content-Length"))
         {
-            size_t len = std::stoul(headers["Content-Length"]);
-            body = body.substr(0, len);
+            try
+            {
+                size_t len = std::stoul(headers["Content-Length"]);
+                body = body.substr(0, len);
+            }
+            catch (...)
+            {
+                statusCode = 400;
+                return;
+            }
         }
     }
 }
@@ -145,8 +153,8 @@ int main()
     "POST /upload HTTP/1.1\r\n"
     "Host: localhost\r\n"
     "Content-Type: application/x-www-form-urlencoded\r\n"
-    "Content-Length: 27\r\n"
-    "\r\nreturn "
+    "Content-Length: abc\r\n"
+    "\r\n"
     "username=john&password=1234";
 
 

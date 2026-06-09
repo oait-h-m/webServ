@@ -35,8 +35,6 @@ public:
     void validate();
 
 
-    void printHeaders() const;
-
 };
 
 #endif
