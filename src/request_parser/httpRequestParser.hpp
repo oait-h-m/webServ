@@ -19,17 +19,20 @@ private:
 
 
 public:
+    httpRequest();
     void parse(const std::string& rawRequest);
 
     const std::string& getMethod() const;
     const std::string& getUri() const;
     const std::string& getVersion() const;
     const std::string& getBody() const;
+    const int& getStatusCode() const;
 
     bool isValidMethod() const;
     bool isValidVersion() const;
+    bool isValidUri() const;
     bool hasHostHeader() const;
-    int validate();
+    void validate();
 
 
     void printHeaders() const;
