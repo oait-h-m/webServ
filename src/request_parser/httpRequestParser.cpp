@@ -1,5 +1,7 @@
 #include "httpRequestParser.hpp"
 
+httpRequest::httpRequest() : statusCode(0) {}
+
 const std::string& httpRequest::getMethod() const
 {
     return method;
@@ -18,6 +20,11 @@ const std::string& httpRequest::getVersion() const
 const std::string& httpRequest::getBody() const
 {
     return body;
+}
+
+const int&   httpRequest::getStatusCode() const
+{
+    return statusCode;
 }
 
 void httpRequest::parse(const std::string& rawRequest)
@@ -60,9 +67,16 @@ void httpRequest::parse(const std::string& rawRequest)
         headers[key] = value;
     }
     size_t pos = rawRequest.find("\r\n\r\n");
-
     if (pos != std::string::npos)
+    {
         body = rawRequest.substr(pos + 4);
+
+        if (headers.count("Content-Length"))
+        {
+            size_t len = std::stoul(headers["Content-Length"]);
+            body = body.substr(0, len);
+        }
+    }
 }
 
 bool httpRequest::isValidMethod() const
@@ -79,37 +93,69 @@ bool httpRequest::isValidVersion() const
     return false;
 }
 
-int httpRequest::validate()
+bool httpRequest::hasHostHeader() const
 {
+    return headers.count("Host") > 0;
+}
+
+bool httpRequest::isValidUri() const
+{
+    if (uri.empty() || uri[0] != '/')
+        return false;
+    return true;
+}
+
+void httpRequest::validate()
+{
+    if (statusCode != 0)
+        return;
     if (!isValidMethod())
-        return 405;
+    {
+        statusCode = 405;
+        return;
+    }
 
     if (!isValidVersion())
-        return 505;
+    {
+        statusCode = 505;
+        return;
+    }
 
     if (!hasHostHeader())
-        return 400;
+    {
+        statusCode = 400;
+        return;
+    }
 
-    return 200;
+    if (!isValidUri())
+    {
+        statusCode = 400;
+        return;
+    }
+
+    statusCode = 200;
 }
+
 
 int main()
 {
     httpRequest req;
 
     std::string rawRequest =
-    "POST  HTTP/1.1\r\n"
+    "POST /upload HTTP/1.1\r\n"
     "Host: localhost\r\n"
     "Content-Type: application/x-www-form-urlencoded\r\n"
     "Content-Length: 27\r\n"
-    "\r\n"
+    "\r\nreturn "
     "username=john&password=1234";
 
+
     req.parse(rawRequest);
+    req.validate();
     std::cout << "Method: " << req.getMethod() << std::endl;
     std::cout << "URI: " << req.getUri() << std::endl;
     std::cout << "Version: " << req.getVersion() << std::endl;
     std::cout << "Body: " << req.getBody() << std::endl;
-
+    std::cout << "status Code: " << req.getStatusCode() << std::endl;
 
 }
