@@ -32,7 +32,12 @@ void httpRequest::parse(const std::string& rawRequest)
         line.erase(line.size() - 1);
 
     std::istringstream firstLine(line);
-    firstLine >> method >> uri >> version;
+
+    if (!(firstLine >> method >> uri >> version))
+    {
+        statusCode = 400;
+        return;
+    }
 
     while (std::getline(stream, line))
     {
@@ -60,14 +65,32 @@ void httpRequest::parse(const std::string& rawRequest)
         body = rawRequest.substr(pos + 4);
 }
 
-void httpRequest::printHeaders() const
+bool httpRequest::isValidMethod() const
 {
-    std::map<std::string, std::string>::const_iterator it;
+    if (method == "GET" || method == "POST" || method == "DELETE")
+        return true;
+    return false;
+}
 
-    for (it = headers.begin(); it != headers.end(); ++it)
-    {
-        std::cout << it->first << " => " << it->second << std::endl;
-    }
+bool httpRequest::isValidVersion() const
+{
+    if (version == "HTTP/1.0" || version == "HTTP/1.1")
+        return true;
+    return false;
+}
+
+int httpRequest::validate()
+{
+    if (!isValidMethod())
+        return 405;
+
+    if (!isValidVersion())
+        return 505;
+
+    if (!hasHostHeader())
+        return 400;
+
+    return 200;
 }
 
 int main()
@@ -75,7 +98,7 @@ int main()
     httpRequest req;
 
     std::string rawRequest =
-    "POST /upload HTTP/1.1\r\n"
+    "POST  HTTP/1.1\r\n"
     "Host: localhost\r\n"
     "Content-Type: application/x-www-form-urlencoded\r\n"
     "Content-Length: 27\r\n"
@@ -83,12 +106,10 @@ int main()
     "username=john&password=1234";
 
     req.parse(rawRequest);
-
     std::cout << "Method: " << req.getMethod() << std::endl;
     std::cout << "URI: " << req.getUri() << std::endl;
     std::cout << "Version: " << req.getVersion() << std::endl;
     std::cout << "Body: " << req.getBody() << std::endl;
 
-    std::cout << "\nHeaders:\n";
-    req.printHeaders();
+
 }

@@ -15,6 +15,8 @@ private:
 
     std::map<std::string, std::string> headers;
     std::string body;
+    int statusCode;
+
 
 public:
     void parse(const std::string& rawRequest);
@@ -23,7 +25,15 @@ public:
     const std::string& getUri() const;
     const std::string& getVersion() const;
     const std::string& getBody() const;
+
+    bool isValidMethod() const;
+    bool isValidVersion() const;
+    bool hasHostHeader() const;
+    int validate();
+
+
     void printHeaders() const;
+
 };
 
 #endif
