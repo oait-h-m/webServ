@@ -20,7 +20,6 @@ private:
 
     HttpRequest(const HttpRequest &other);
     HttpRequest &operator=(const HttpRequest &other);
-    ~HttpRequest();
 
 public:
     HttpRequest();
