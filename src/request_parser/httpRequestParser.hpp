@@ -1,12 +1,13 @@
-#ifndef HTTPREQUESTPARSER
-#define HTTPREQUESTPARSER
+#ifndef HTTPREQUESTPARSER_HPP
+#define HTTPREQUESTPARSER_HPP
 
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <cstdlib>
 #include <map>
 
-class httpRequest
+class HttpRequest
 {
 private:
     std::string method;
@@ -19,7 +20,7 @@ private:
 
 
 public:
-    httpRequest();
+    HttpRequest();
     void parse(const std::string& rawRequest);
 
     const std::string& getMethod() const;
