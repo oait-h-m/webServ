@@ -1,33 +1,33 @@
 #include "httpRequestParser.hpp"
 
-httpRequest::httpRequest() : statusCode(0) {}
+HttpRequest::HttpRequest() : statusCode(0) {}
 
-const std::string& httpRequest::getMethod() const
+const std::string& HttpRequest::getMethod() const
 {
     return method;
 }
-const std::string& httpRequest::getUri() const
+const std::string& HttpRequest::getUri() const
 {
     return uri;
 }
 
-const std::string& httpRequest::getVersion() const
+const std::string& HttpRequest::getVersion() const
 {
     return version;
 }
 
 
-const std::string& httpRequest::getBody() const
+const std::string& HttpRequest::getBody() const
 {
     return body;
 }
 
-const int&   httpRequest::getStatusCode() const
+const int&   HttpRequest::getStatusCode() const
 {
     return statusCode;
 }
 
-void httpRequest::parse(const std::string& rawRequest)
+void HttpRequest::parse(const std::string& rawRequest)
 {
     std::istringstream stream(rawRequest);
     std::string line;
@@ -75,7 +75,7 @@ void httpRequest::parse(const std::string& rawRequest)
         {
             try
             {
-                size_t len = std::stoul(headers["Content-Length"]);
+                size_t len = std::atoi(headers["Content-Length"].c_str());
                 body = body.substr(0, len);
             }
             catch (...)
@@ -87,33 +87,33 @@ void httpRequest::parse(const std::string& rawRequest)
     }
 }
 
-bool httpRequest::isValidMethod() const
+bool HttpRequest::isValidMethod() const
 {
     if (method == "GET" || method == "POST" || method == "DELETE")
         return true;
     return false;
 }
 
-bool httpRequest::isValidVersion() const
+bool HttpRequest::isValidVersion() const
 {
     if (version == "HTTP/1.0" || version == "HTTP/1.1")
         return true;
     return false;
 }
 
-bool httpRequest::hasHostHeader() const
+bool HttpRequest::hasHostHeader() const
 {
     return headers.count("Host") > 0;
 }
 
-bool httpRequest::isValidUri() const
+bool HttpRequest::isValidUri() const
 {
     if (uri.empty() || uri[0] != '/')
         return false;
     return true;
 }
 
-void httpRequest::validate()
+void HttpRequest::validate()
 {
     if (statusCode != 0)
         return;
@@ -144,26 +144,3 @@ void httpRequest::validate()
     statusCode = 200;
 }
 
-
-int main()
-{
-    httpRequest req;
-
-    std::string rawRequest =
-    "POST /upload HTTP/1.1\r\n"
-    "Host: localhost\r\n"
-    "Content-Type: application/x-www-form-urlencoded\r\n"
-    "Content-Length: abc\r\n"
-    "\r\n"
-    "username=john&password=1234";
-
-
-    req.parse(rawRequest);
-    req.validate();
-    std::cout << "Method: " << req.getMethod() << std::endl;
-    std::cout << "URI: " << req.getUri() << std::endl;
-    std::cout << "Version: " << req.getVersion() << std::endl;
-    std::cout << "Body: " << req.getBody() << std::endl;
-    std::cout << "status Code: " << req.getStatusCode() << std::endl;
-
-}
