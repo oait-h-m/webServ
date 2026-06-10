@@ -46,8 +46,7 @@ void HttpRequest::parse(const std::string& rawRequest)
         return;
     }
 
-    while (std::getline(stream, line) make                                                                                      2 ↵
-make: *** No targets specified and no makefile found.  Stop.)
+    while (std::getline(stream, line))
     {
         if (!line.empty() && line[line.size() - 1] == '\r')
             line.erase(line.size() - 1);
