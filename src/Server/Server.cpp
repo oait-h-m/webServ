@@ -24,3 +24,19 @@ void Server::init()
         throw std::runtime_error("Error: listen failed");
 }
 
+int Server::getListeningFd() 
+{
+    return listening_fd;
+}
+int Server::getPort()
+{
+    return port;
+}
+std::string Server::getServerName()
+{
+    return server_name;
+}
+std::string Server::getRootDir()
+{
+    return root_dir;
+}
