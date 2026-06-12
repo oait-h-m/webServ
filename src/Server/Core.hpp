@@ -5,6 +5,8 @@
 #include <map>
 #include "Server.hpp"
 #include "Client.hpp"
+#include <sys/epoll.h>
+
 
 class Core {
 private:
