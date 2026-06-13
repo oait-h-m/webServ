@@ -20,7 +20,6 @@ public:
     ~Server();
     
     void init();
-    int acceptClient();
     int getListeningFd() ;
     int getPort();
     std::string getServerName() ;
