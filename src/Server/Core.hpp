@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include "Server.hpp"
+#include "../request_parser/httpRequestParser.hpp"
 #include "Client.hpp"
 #include <sys/epoll.h>
 #include <unistd.h>
