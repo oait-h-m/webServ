@@ -6,7 +6,8 @@
 #include <string>
 #include <cstdlib>
 #include <map>
-#include "../Server/Client.hpp"
+
+class Client;
 
 class HttpRequest
 {
@@ -19,11 +20,11 @@ private:
     std::string body;
     int statusCode;
 
-    HttpRequest(const HttpRequest &other);
-    HttpRequest &operator=(const HttpRequest &other);
 
 public:
     HttpRequest();
+    HttpRequest(const HttpRequest &other);
+    HttpRequest &operator=(const HttpRequest &other);
     void parse(Client &client);
 
     const std::string& getMethod() const;
