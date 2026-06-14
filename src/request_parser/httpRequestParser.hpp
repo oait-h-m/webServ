@@ -6,8 +6,7 @@
 #include <string>
 #include <cstdlib>
 #include <map>
-#include "Client.hpp"
-
+#include "../Server/Client.hpp"
 
 class HttpRequest
 {
