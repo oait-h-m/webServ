@@ -6,6 +6,8 @@
 #include <string>
 #include <cstdlib>
 #include <map>
+#include "Client.hpp"
+
 
 class HttpRequest
 {
@@ -23,7 +25,7 @@ private:
 
 public:
     HttpRequest();
-    void parse(const std::string& rawRequest);
+    void parse(Client &client);
 
     const std::string& getMethod() const;
     const std::string& getUri() const;
@@ -36,6 +38,7 @@ public:
     bool isValidUri() const;
     bool hasHostHeader() const;
     void validate();
+    bool isRequestComplete(const std::string rawRequest);
 
 
 };
