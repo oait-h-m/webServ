@@ -127,17 +127,18 @@ void Core::run()
             else if (event_mask & EPOLLIN)
             {
                 Client& client = *all_clients[fd];
-                client.readRequest();
-                
+                if (client.readRequest() == -1)
+                {
+                    removeClient(fd);
+                    continue;
+                }
+                client.getRequest().parse(client);
+                if (!client.getRequestComplete())
+                    continue;
+                client.handleRequest();
             }
 
 
         }
-        
-
-
-
-
-
     }
 }
