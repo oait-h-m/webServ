@@ -1,4 +1,5 @@
 #include "httpRequestParser.hpp"
+#include "../Server/Client.hpp"
 
 HttpRequest::HttpRequest() : statusCode(0) {}
 
@@ -27,8 +28,45 @@ const int&   HttpRequest::getStatusCode() const
     return statusCode;
 }
 
-void HttpRequest::parse(const std::string& rawRequest)
+bool HttpRequest::isRequestComplete(const std::string req)
 {
+    size_t pos = req.find("\r\n\r\n");
+    size_t contentLen;
+    if (pos == std::string::npos)
+        return false;
+
+    size_t contentPos = req.find("Content-Length:");
+    if (contentPos == std::string::npos)
+        return true;
+
+    size_t lineEnd = req.find("\r\n", contentPos);
+    std::string line = req.substr(contentPos, lineEnd - contentPos);
+    size_t colon = line.find(':');
+    if (colon == std::string::npos)
+        return false;
+
+    std::string value = line.substr(colon + 1);
+    while (!value.empty() && (value[0] == ' ' || value[0] == '\t'))
+        value.erase(0, 1);
+
+    try
+    {
+        contentLen = std::atoi(value.c_str());
+    }
+    catch(...)
+    {
+        return false;
+    }
+    size_t bodyStart = pos + 4;
+    size_t bodySize = req.size() - bodyStart;
+    return bodySize >= contentLen;
+}
+
+void HttpRequest::parse(Client &client)
+{
+    const std::string& rawRequest = client.getRequestBuffer();
+    if (!isRequestComplete(rawRequest))
+        return;
     std::istringstream stream(rawRequest);
     std::string line;
 
@@ -85,6 +123,7 @@ void HttpRequest::parse(const std::string& rawRequest)
             }
         }
     }
+    client.setRequest(true);
 }
 
 bool HttpRequest::isValidMethod() const
