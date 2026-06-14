@@ -20,9 +20,10 @@ public:
     ~Client();
     
     void readRequest();
-    bool isRequestComplete();
     void handleRequest();
     void sendResponse();
+    std::string getRawRequest();
+    void    setRequest(bool request_complete);
     
     int getSocketFd();
     Server* getServer();

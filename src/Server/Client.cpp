@@ -19,3 +19,8 @@ void Client::readRequest()
     }
 
 }
+
+std::string Client::getRawRequest()
+{
+    return request_buffer;
+}
