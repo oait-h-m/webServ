@@ -19,12 +19,13 @@ public:
     Client(int fd, Server *server); 
     ~Client();
     
-    void readRequest();
+    int readRequest();
     void handleRequest();
     void sendResponse();
-    std::string getRawRequest();
+    std::string getRequestBuffer();
     void    setRequest(bool request_complete);
-    
+    bool getRequestComplete();
+    HttpRequest getRequest();
     int getSocketFd();
     Server* getServer();
 };
