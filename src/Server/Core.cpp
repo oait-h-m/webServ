@@ -124,6 +124,14 @@ void Core::run()
                 acceptClient(getServer(fd));
                 continue;
             }
+            else if (event_mask & EPOLLIN)
+            {
+                Client& client = *all_clients[fd];
+                client.readRequest();
+                
+            }
+
+
         }
         
 
