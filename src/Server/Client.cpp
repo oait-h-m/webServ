@@ -18,7 +18,7 @@ int Client::readRequest()
         request_buffer.append(buffer, read);
         return 1;
     }
-    else if (read == 0)
+    else if (read <= 0)
         return -1;
     return 0;
 }

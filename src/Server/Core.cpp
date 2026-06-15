@@ -127,7 +127,8 @@ void Core::run()
             else if (event_mask & EPOLLIN)
             {
                 Client& client = *all_clients[fd];
-                if (client.readRequest() == -1)
+                
+                if (client.readRequest() <= 0)
                 {
                     removeClient(fd);
                     continue;
