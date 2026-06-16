@@ -4,6 +4,7 @@
 #include <string>
 #include <sys/socket.h>
 #include "../request_parser/httpRequestParser.hpp"
+#include "../request_handler/HttpResponse.hpp"
 
 class Server; 
 
@@ -13,6 +14,7 @@ private:
     Server *server; 
     std::string request_buffer;
     HttpRequest request;
+    HttpResponse response;
     bool request_complete;
     
 public:
