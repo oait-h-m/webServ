@@ -6,7 +6,6 @@
 #include <string>
 #include <cstdlib>
 #include <map>
-#include "../Server/Client.hpp"
 
 class HttpRequest
 {
@@ -19,12 +18,10 @@ private:
     std::string body;
     int statusCode;
 
-    HttpRequest(const HttpRequest &other);
-    HttpRequest &operator=(const HttpRequest &other);
 
 public:
     HttpRequest();
-    void parse(Client &client);
+    void parse(const std::string& rawRequest);
 
     const std::string& getMethod() const;
     const std::string& getUri() const;
@@ -37,7 +34,6 @@ public:
     bool isValidUri() const;
     bool hasHostHeader() const;
     void validate();
-    bool isRequestComplete(const std::string rawRequest);
 
 
 };
