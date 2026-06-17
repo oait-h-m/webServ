@@ -1,6 +1,10 @@
 #ifndef CONFIG_PARSER_HPP
 # define CONFIG_PARSER_HPP
 
+# define WARN(string) \
+	std::cout << "\033[33m" << "[WARNING] " <<\
+	string << "\033[0m" << std::endl
+
 #include "./InternalConfigs.hpp"
 #include "./Lexer.hpp"
 
@@ -13,6 +17,7 @@ class ConfigParser {
 		void	_parse_server();
 		void	_parse_location(ServerConfig &server);
 		void	_parse_location_directive(LocationConfig &lc_config);
+		void	_validate_interface_port(std::string &input, ServerConfig &sv_config);
 		void	_parse_server_directive(ServerConfig &sv_config);
 		const	Token	&_consume();
 		const	Token	&_peek() const;
