@@ -171,11 +171,16 @@ void	ConfigParser::_parse_server_directive(ServerConfig &sv_config) {
 		std::string root_dir;
 		struct stat meta_data;
 		_consume();
-		_match(TOK_WORD);
+		if (_peek().type != TOK_WORD)
+			throw(std::runtime_error("ConfigParser::_parse_server_directive(): Invalid root dir parameter"));
 		root_dir = _peek().word;
 		if (stat(root_dir.c_str(), &meta_data))
-			throw(std::runtime_error("ConfigParser::_parse_server_directive(): Root directory not found"));
+			throw(std::runtime_error("ConfigParser::_parse_server_directive(): Root directory path not found"));
+		if (!S_ISDIR(meta_data.st_mode))
+			throw(std::runtime_error("ConfigParser::_parse_server_directive(): Given path is not a directory"));
 		sv_config.root = root_dir;
+		_consume();
+		_match(TOK_SEM);
 	}
 	else
 		throw(std::runtime_error("ConfigParser::_parse_server_directive(): Unkown directive name: " + key_word));
