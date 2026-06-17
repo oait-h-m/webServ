@@ -2,6 +2,7 @@
 #include <sstream>
 #include <iostream>
 #include <arpa/inet.h>
+#include <sys/stat.h>
 
 ConfigParser::ConfigParser() {}
 
@@ -165,6 +166,16 @@ void	ConfigParser::_parse_server_directive(ServerConfig &sv_config) {
 		}
 		//TODO: Handle the last argument which is the error page
 		_match(TOK_SEM);
+	}
+	else if (key_word == "root") {
+		std::string root_dir;
+		struct stat meta_data;
+		_consume();
+		_match(TOK_WORD);
+		root_dir = _peek().word;
+		if (stat(root_dir.c_str(), &meta_data))
+			throw(std::runtime_error("ConfigParser::_parse_server_directive(): Root directory not found"));
+		sv_config.root = root_dir;
 	}
 	else
 		throw(std::runtime_error("ConfigParser::_parse_server_directive(): Unkown directive name: " + key_word));
