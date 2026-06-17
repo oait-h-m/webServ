@@ -5,6 +5,9 @@
 #include <sys/socket.h>
 #include "../request_parser/httpRequestParser.hpp"
 #include "../request_handler/HttpResponse.hpp"
+#include "../methods/Delete.hpp"
+#include "../methods/Get.hpp"
+#include "../methods/Post.hpp"
 
 class Server; 
 
@@ -13,6 +16,9 @@ private:
     int socket_fd;
     Server *server; 
     std::string request_buffer;
+    Delete delete_handler;
+    Get get_handler;
+    Post post_handler;
     HttpRequest request;
     HttpResponse response;
     bool request_complete;
