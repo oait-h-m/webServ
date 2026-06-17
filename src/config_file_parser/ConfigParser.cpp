@@ -107,13 +107,65 @@ void	ConfigParser::_validate_interface_port(std::string &input, ServerConfig &sv
 
 void	ConfigParser::_parse_server_directive(ServerConfig &sv_config) {
 	std::string	key_word = _peek().word;
-	int	port;
+	std::string arg;
 	if (key_word == "listen") {
 		_consume();
-		key_word = _peek().word;
-		_validate_interface_port(key_word, sv_config);
-		sv_config.port = port;
+		if (_peek().type != TOK_WORD)
+			throw(std::runtime_error("ConfigParser::_parse_server_directive(): Invalid listen directive args!"));
+		arg = _peek().word;
+		_validate_interface_port(arg, sv_config);
 		_consume();
 		_match(TOK_SEM);
 	}
+	else if (key_word == "server_name") {
+		_consume();
+		if (_peek().type != TOK_WORD)
+			throw(std::runtime_error("ConfigParser::_parse_server_directive(): Invalid  server_name directive args!"));
+		while (_peek().type != TOK_SEM) {
+			if (_peek().word.size() > 255)
+				throw(std::runtime_error("ConfigParser::_parse_server_directive(): Domain name is too long!"));
+			sv_config.server_names.push_back(_peek().word);
+			_consume();
+		}
+		_match(TOK_SEM);
+	}
+	else if (key_word == "client_max_body_size") {
+		std::stringstream	size_stream;
+		long long			size_container;
+		_consume();
+		if (_peek().type != TOK_WORD)
+			throw(std::runtime_error("ConfigParser::_parse_server_directive(): Invalid client_max_body_size directive args!"));
+		arg = _peek().word;
+		size_stream.str(arg);
+		size_stream >> size_container;
+		if (size_stream.fail() || !size_stream.eof())
+			throw(std::runtime_error("ConfigParser::_parse_server_directive(): Invalid size value: Non numerical"));
+		if (size_container < 0)
+			throw(std::runtime_error("ConfigParser::_parse_server_directive(): Invalid size number: Not positive"));
+		sv_config.client_max_body_size = static_cast<size_t>(size_container);
+		_consume();
+		_match(TOK_SEM);
+	}
+	else if (key_word == "error_page") {
+		std::stringstream	number_stream;
+		long long			number_container;
+		std::vector<int>	error_nums(0);
+		_consume();
+		while (_peek().type != TOK_SEM) {
+			if (_peek().type != TOK_WORD)
+				throw(std::runtime_error("ConfigParser::_parse_server_directive(): Invalid error_page directive args"));
+			number_stream.str(arg);
+			number_stream >> number_container;
+			if (number_stream.fail() || !number_stream.eof())
+				throw(std::runtime_error("ConfigParser::_parse_server_directive(): Invalid number value: Non numerical"));
+			if (number_container < 0 || number_container > 1000)
+				throw(std::runtime_error("ConfigParser::_parse_server_directive(): Invalid error number!"));
+			error_nums.push_back(number_container);
+			_consume();
+		}
+		//TODO: Handle the last argument which is the error page
+		_match(TOK_SEM);
+	}
+	else
+		throw(std::runtime_error("ConfigParser::_parse_server_directive(): Unkown directive name: " + key_word));
 }
