@@ -5,15 +5,16 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-ConfigParser::ConfigParser() {}
+ConfigParser::ConfigParser(): _pos(0) {}
 
 ConfigParser::ConfigParser(const ConfigParser &other) {}
 
 ConfigParser::~ConfigParser() {}
 
-ConfigParser::ConfigParser(const std::vector<Token> &tokens): _tokens(tokens), _pos(0) {}
-
 ConfigParser&	ConfigParser::operator=(const ConfigParser &other) {
+	/* This one should not be used, if anything changes, its going public
+	 * and a new logic needs to be impelemented accordingly
+	 */
 	return (*this);
 }
 

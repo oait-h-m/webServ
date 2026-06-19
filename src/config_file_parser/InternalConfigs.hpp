@@ -34,6 +34,7 @@ struct ServerConfig
 	std::vector<LocationConfig> locations;
 	ServerConfig() {
 		port = 0;
+		client_max_body_size = 0;
 		error_pages.clear();
 		locations.clear();
 	}

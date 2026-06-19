@@ -29,7 +29,6 @@ class ConfigParser {
 		void	_match(TokenType expected);
 		ConfigParser(const ConfigParser &other);
 		ConfigParser&	operator=(const ConfigParser &other);
-		ConfigParser(const std::vector<Token> &tokens);
 	public:
 		ConfigParser();
 		void	parse();
