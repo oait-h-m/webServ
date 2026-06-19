@@ -17,6 +17,10 @@ ConfigParser&	ConfigParser::operator=(const ConfigParser &other) {
 	return (*this);
 }
 
+void	ConfigParser::set_tokens(std::vector<Token> &ts) {
+	_tokens = ts;
+}
+
 const Token	&ConfigParser::_consume() {
 	if (_pos < _tokens.size())
 		_pos += 1;
