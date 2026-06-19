@@ -1,7 +1,7 @@
 #include "Core.hpp"
 
 
-Core::Core():epoll_fd(-1), n_servers(0)
+Core::Core():epoll_fd(-1)
 {}
 
 Core::~Core()
@@ -9,19 +9,11 @@ Core::~Core()
 
 void Core::creatServers()
 {
-    std::vector<int>::iterator p_it;
-    p_it = s_ports.begin();
-    std::vector<std::string>::iterator n_it;
-    n_it = s_names.begin();
-    std::vector<std::string>::iterator r_it;
-    r_it = s_roots.begin();
-    for (int i = 0; i < n_servers; i++)
+    std::vector<ServerConfig>::iterator it;
+    for (it = server_config.server_configs.begin(); it != server_config.server_configs.end(); it++)
     {
-        Server *server = new Server(*p_it, *n_it, *r_it);
+        Server *server = new Server(it->port, it->server_name, it->root);
         servers.push_back(server);
-        ++p_it;
-        ++n_it;
-        ++r_it;
     }
 }
 
