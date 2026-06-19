@@ -27,13 +27,13 @@ class ConfigParser {
 		const	Token	&_consume();
 		const	Token	&_peek() const;
 		void	_match(TokenType expected);
+		ConfigParser();
 		ConfigParser(const ConfigParser &other);
 		ConfigParser&	operator=(const ConfigParser &other);
 	public:
-		ConfigParser();
 		ConfigParser(const std::vector<Token> &tokens);
-		void	set_tokens(std::vector<Token> &tokens);
-		const WebServerConfig	&parse();
+		void	parse();
+		WebServerConfig generate_config(std::string &file_path);
 		~ConfigParser();
 
 

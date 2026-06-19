@@ -17,10 +17,6 @@ ConfigParser&	ConfigParser::operator=(const ConfigParser &other) {
 	return (*this);
 }
 
-void	ConfigParser::set_tokens(std::vector<Token> &ts) {
-	_tokens = ts;
-}
-
 const Token	&ConfigParser::_consume() {
 	if (_pos < _tokens.size())
 		_pos += 1;
@@ -46,7 +42,7 @@ void	ConfigParser::_match(TokenType expected) {
 		throw(std::runtime_error("ConfigParser::_match(): Unexpected Token Type !"));
 }
 
-const WebServerConfig	&ConfigParser::parse() {
+void ConfigParser::parse() {
 	Token	current;
 
 	while (_peek().type != TOK_EOF) {
@@ -57,9 +53,9 @@ const WebServerConfig	&ConfigParser::parse() {
 			throw(std::runtime_error("ConfigParser::parse(): Unknown global directive!"));
 		current = _peek();
 		if (current.type == TOK_EOF)
-			return (_global_config);
+			return ;
 	}
-	return (_global_config);
+	return ;
 }
 
 void	ConfigParser::_parse_server() {
@@ -130,7 +126,7 @@ void	ConfigParser::_parse_server_name_directive(ServerConfig &sv_config) {
 	while (_peek().type != TOK_SEM) {
 		if (_peek().word.size() > 255)
 			throw(std::runtime_error("ConfigParser::_parse_server_directive(): Domain name is too long!"));
-		sv_config.server_names.push_back(_peek().word);
+		sv_config.server_name = _peek().word;
 		_consume();
 	}
 	_match(TOK_SEM);
@@ -226,4 +222,12 @@ void	ConfigParser::_parse_server_directive(ServerConfig &sv_config) {
 		_parse_error_page_directive(sv_config);
 	else
 		throw(std::runtime_error("ConfigParser::_parse_server_directive(): Unkown directive name: " + key_word));
+}
+
+WebServerConfig ConfigParser::generate_config(std::string &file_path) {
+	Lexer	lexer(file_path);
+
+	_tokens = lexer.tokenizer();
+	parse();
+	return (_global_config);
 }
