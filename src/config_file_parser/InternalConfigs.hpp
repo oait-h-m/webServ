@@ -15,6 +15,11 @@ struct LocationConfig {
 	std::string cgi_extension;
 	std::string cgi_path;
 	std::string redirection;
+	LocationConfig() {
+		index_files.clear();
+		allowed_methods.clear();
+		autoindex = false;
+	}
 
 };
 
@@ -27,10 +32,16 @@ struct ServerConfig
 	std::map<int, std::string> error_pages;
 	size_t client_max_body_size;
 	std::vector<LocationConfig> locations;
+	ServerConfig() {
+		port = 0;
+		error_pages.clear();
+		locations.clear();
+	}
 };
 
 struct WebServerConfig {
 	std::vector<ServerConfig>	server_configs;
+	WebServerConfig() { server_configs.clear(); }
 };
 
 

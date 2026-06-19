@@ -123,12 +123,10 @@ void	ConfigParser::_parse_server_name_directive(ServerConfig &sv_config) {
 	_consume();
 	if (_peek().type != TOK_WORD)
 		throw(std::runtime_error("ConfigParser::_parse_server_directive(): Invalid  server_name directive args!"));
-	while (_peek().type != TOK_SEM) {
-		if (_peek().word.size() > 255)
-			throw(std::runtime_error("ConfigParser::_parse_server_directive(): Domain name is too long!"));
-		sv_config.server_name = _peek().word;
-		_consume();
-	}
+	if (_peek().word.size() > 255)
+		throw(std::runtime_error("ConfigParser::_parse_server_directive(): Domain name is too long!"));
+	sv_config.server_name = _peek().word;
+	_consume();
 	_match(TOK_SEM);
 }
 
@@ -175,21 +173,21 @@ void	ConfigParser::_parse_error_page_directive(ServerConfig &sv_config) {
 	_consume();
 	while (_peek().type != TOK_SEM) {
 		if (_peek().type != TOK_WORD)
-			throw(std::runtime_error("ConfigParser::_parse_server_directive(): Invalid error_page directive args"));
+			throw(std::runtime_error("ConfigParser::_parse_error_page_directive(): Invalid error_page directive args"));
 		error_args.push_back(_peek().word);
 		_consume();
 	}
 	if (error_args.size() < 2)
-		throw(std::runtime_error("ConfigParser::_parse_server_directive(): Invalid error_page number of args"));
+		throw(std::runtime_error("ConfigParser::_parse_error_page_directive(): Invalid error_page number of args"));
 	file_path = error_args[error_args.size() - 1];
 	if (stat(file_path.c_str(), &meta_data) != 0) {
-		throw std::runtime_error("ConfigParser: Error page file not found: " + file_path);
+		throw std::runtime_error("ConfigParser::_parser_error_page_directive(): Error page file not found: " + file_path);
 	}
 	if (!S_ISREG(meta_data.st_mode)) {
-		throw std::runtime_error("ConfigParser: Error page path is not a file: " + file_path);
+		throw std::runtime_error("ConfigParser::_parse_error_page_directive(): Error page path is not a file: " + file_path);
 	}
 	if (access(file_path.c_str(), R_OK) != 0) {
-		throw std::runtime_error("ConfigParser: Error page file is not readable: " + file_path);
+		throw std::runtime_error("ConfigParser::_parse_error_page_directive(): Error page file is not readable: " + file_path);
 	}
 	for (size_t i = 0; i < error_args.size() - 1; i += 1) {
 	std::stringstream enum_stream;
@@ -197,9 +195,9 @@ void	ConfigParser::_parse_error_page_directive(ServerConfig &sv_config) {
 		enum_stream.str(error_args[i]);
 		enum_stream >> enum_container;
 		if (enum_stream.fail() || !enum_stream.eof())
-			throw(std::runtime_error("ConfigParser::_validate_interface_enum(): Invalid enum number"));
+			throw(std::runtime_error("ConfigParser::_parse_error_page_directive(): Invalid enum number"));
 		if (enum_container < 0 || enum_container > 699)
-			throw(std::runtime_error("ConfigParser::_validate_interface_enum(): enum number is out of range"));
+			throw(std::runtime_error("ConfigParser::_parse_error_page_directive(): enum number is out of range"));
 		if (enum_container > 599)
 			WARN("Error Number is a bit too large ! Try using a value less than 599");
 		sv_config.error_pages[enum_container] = file_path;
