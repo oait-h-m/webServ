@@ -3,6 +3,7 @@
 #include <arpa/inet.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <cctype>
 
 ConfigParser::ConfigParser(): _pos(0) {}
 
@@ -222,7 +223,58 @@ void	ConfigParser::_parse_autoindex(LocationConfig &lc_conf) {
 void	ConfigParser::_parse_index(LocationConfig &lc_conf) {
 	lc_conf.index_files.clear();
 	_match(TOK_WORD);
+	while (_peek().type != TOK_SEM) {
+		if (_peek().type != TOK_WORD)
+			throw(std::runtime_error("ConfigParser::_parse_index(): Invalid token type, Word expected"));
+		lc_conf.index_files.push_back(_peek().word);
+		_consume();
+	}
+	_match(TOK_SEM);
 }
+
+void	ConfigParser::_parse_return(LocationConfig &lc_conf) {
+	std::string return_code;
+
+	_match(TOK_WORD);
+	if (_peek().type != TOK_WORD)
+		throw(std::runtime_error("ConfigParser::_parse_return: Invalid parameter"));
+	return_code = _peek().word;
+	if (return_code.size() != 3)
+		throw(std::runtime_error("ConfigParser::_parse_return: Invalid parameter"));
+	if (return_code[0] != '3' || !isdigit(return_code[1]) || !isdigit(return_code[2]))
+		throw(std::runtime_error("ConfigParser::_parse_return: invalid return value"));
+	_consume();
+	if (_peek().type != TOK_WORD)
+		throw(std::runtime_error("ConfigParser::_parse_return: invalid parameter, URI expected"));
+	return_code += " " +  _peek().word;
+	lc_conf.redirection = return_code;
+	_consume();
+	_match(TOK_SEM);
+}
+
+void	ConfigParser::_parse_upload_store(LocationConfig &lc_conf) {
+
+	std::string path;
+	struct stat meta_data;
+
+	_match(TOK_WORD);
+	if (_peek().type != TOK_WORD)
+		throw(std::runtime_error("ConfigParser::_parse_upload_store: invalid parameter path expected"));
+	path = _peek().word;
+
+	if (stat(path.c_str(), &meta_data) != 0)
+		throw(std::runtime_error("ConfigParser::_parse_upload_store: invalid upload path"));
+	if (!S_ISDIR(meta_data.st_mode))
+		throw(std::runtime_error("ConfigParser::_parse_upload_store: given store path is not a directory"));
+	lc_conf.upload_path = path;
+	_consume();
+	_match(TOK_SEM);
+}
+
+void	ConfigParser::_parse_cgi_pass(LocationConfig &lc_conf) {
+
+}
+
 
 WebServerConfig ConfigParser::generate_config(std::string &file_path) {
 	Lexer	lexer(file_path);

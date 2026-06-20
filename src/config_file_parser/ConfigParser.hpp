@@ -1,6 +1,5 @@
 #ifndef CONFIG_PARSER_HPP
 # define CONFIG_PARSER_HPP
-
 # define WARN(string) \
 	std::cout << "\033[33m" << "[WARNING] " <<\
 	string << "\033[0m" << std::endl
