@@ -33,7 +33,7 @@ public:
     std::string getRequestBuffer();
     void    setRequest(bool request_complete);
     bool getRequestComplete();
-    HttpRequest getRequest();
+    HttpRequest& getRequest();
     int getSocketFd();
     Server* getServer();
 };

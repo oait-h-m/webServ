@@ -38,7 +38,17 @@ bool Client::getRequestComplete()
     return request_complete;
 }
 
-HttpRequest Client::getRequest()
+HttpRequest& Client::getRequest()
 {
     return request;
+}
+
+int Client::getSocketFd()
+{
+    return socket_fd;
+}
+
+Server* Client::getServer()
+{
+    return server;
 }
