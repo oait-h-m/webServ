@@ -48,7 +48,7 @@ void HttpResponse::setBody(const std::string &content)
     body = content;
     std::ostringstream ss;
     ss << body.length();
-    setHeader("Content-Type", ss.str());
+    setHeader("Content-Length", ss.str());
 }
 
 void HttpResponse::setHeader(const std::string &key, const std::string &value)
