@@ -175,6 +175,14 @@ void	ConfigParser::_parse_location_directive(LocationConfig &lc_conf) {
 		_parse_allowed_methods(lc_conf);
 	else if (key_word == "autoindex")
 		_parse_autoindex(lc_conf);
+	else if (key_word == "index")
+		_parse_index(lc_conf);
+	else if (key_word == "return")
+		_parse_return(lc_conf);
+	else if (key_word == "upload_store")
+		_parse_upload_store(lc_conf);
+	else if (key_word == "cgi_pass")
+		_parse_cgi_pass(lc_conf);
 	else
 		throw(std::runtime_error("ConfigParser::_parse_location_directive(): Unknown directive name: " + key_word));
 }
@@ -209,6 +217,11 @@ void	ConfigParser::_parse_autoindex(LocationConfig &lc_conf) {
 		throw(std::runtime_error("ConfigParser::_parse_autoindex: Invalid directive argument!" + _peek().word));
 	_consume();
 	_match(TOK_SEM);
+}
+
+void	ConfigParser::_parse_index(LocationConfig &lc_conf) {
+	lc_conf.index_files.clear();
+	_match(TOK_WORD);
 }
 
 WebServerConfig ConfigParser::generate_config(std::string &file_path) {

@@ -33,6 +33,10 @@ class ConfigParser {
 		// Location config directive dispatchers
 		void	_parse_allowed_methods(LocationConfig &lc_cnof);
 		void	_parse_autoindex(LocationConfig &lc_conf);
+		void	_parse_index(LocationConfig &lc_conf);
+		void	_parse_return(LocationConfig &lc_conf);
+		void	_parse_upload_store(LocationConfig &lc_conf);
+		void	_parse_cgi_pass(LocationConfig &lc_conf);
 
 		// Helper methods for walking around or performing parameters checks.
 		void	_validate_interface_port(std::string &input, ServerConfig &sv_config);
