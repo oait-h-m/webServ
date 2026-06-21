@@ -7,7 +7,10 @@
 
 ConfigParser::ConfigParser(): _pos(0) {}
 
-ConfigParser::ConfigParser(const ConfigParser &other) {}
+ConfigParser::ConfigParser(const ConfigParser &other) {
+	if (this != &other)
+		return ;
+}
 
 ConfigParser::~ConfigParser() {}
 
@@ -15,6 +18,8 @@ ConfigParser&	ConfigParser::operator=(const ConfigParser &other) {
 	/* This one should not be used, if anything changes, its going public
 	 * and a new logic needs to be impelemented accordingly
 	 */
+	if (this != &other)
+		return (*this);
 	return (*this);
 }
 

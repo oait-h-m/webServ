@@ -139,8 +139,6 @@ class ConfigParser {
 		void	parse();
 		WebServerConfig generate_config(std::string &file_path);
 		~ConfigParser();
-
-
 };
 
 
