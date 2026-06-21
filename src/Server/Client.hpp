@@ -22,6 +22,7 @@ private:
     HttpRequest request;
     HttpResponse response;
     bool request_complete;
+    bool response_sent;
     
 public:
     Client(int fd, Server *server); 
@@ -36,6 +37,8 @@ public:
     HttpRequest& getRequest();
     int getSocketFd();
     Server* getServer();
+    bool getResponseSent();
+    void setResponseSent(bool value);
 };
 
 #endif
