@@ -26,7 +26,7 @@ private:
     void removeClient(int fd);
     
 public:
-    Core();
+    Core(std::string config_path);
     ~Core();
     
     void run(); 

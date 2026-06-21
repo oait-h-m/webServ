@@ -1,11 +1,25 @@
 #include "Core.hpp"
 
 
-Core::Core():epoll_fd(-1)
-{}
+Core::Core(std::string config_path):epoll_fd(-1)
+{
+    ConfigParser parser;
+    parser.generate_config(config_path);
+}
 
 Core::~Core()
-{}
+{
+    for (std::vector<Server*>::iterator it = servers.begin(); it != servers.end(); ++it)
+        delete *it;
+    servers.clear();
+
+    for (std::map<int, Client*>::iterator it = all_clients.begin(); it != all_clients.end(); ++it)
+        delete it->second;
+    all_clients.clear();
+
+    if (epoll_fd != -1)
+        close(epoll_fd);
+}
 
 void Core::creatServers()
 {
@@ -86,6 +100,8 @@ void Core::removeClient(int fd)
 
     epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, NULL);
     close(fd);
+    delete all_clients[fd];
+    all_clients.erase(fd);
 }
 
 void Core::run()
@@ -96,8 +112,15 @@ void Core::run()
     for (it = servers.begin(); it != servers.end(); it++)
         (*it)->init();
     
-    setupEpoll();
-
+    try
+    {
+        setupEpoll();
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        return ;
+    }
     struct epoll_event events[10000];
     while (true)
     {
@@ -111,12 +134,17 @@ void Core::run()
             int fd = events[i].data.fd;
             uint32_t event_mask = events[i].events;
 
+            if (event_mask & (EPOLLERR | EPOLLHUP))
+            {
+                removeClient(fd);
+                continue;
+            }
             if (isListeningFd(fd))
             {
                 acceptClient(getServer(fd));
                 continue;
             }
-            else if (event_mask & EPOLLIN)
+            if (event_mask & EPOLLIN)
             {
                 Client& client = *all_clients[fd];
                 if (client.readRequest() <= 0)
@@ -128,9 +156,27 @@ void Core::run()
                 if (!client.getRequestComplete())
                     continue;
                 client.handleRequest();
+                epoll_event ev;
+                ev.events = EPOLLOUT;
+                ev.data.fd = fd;
+
+                if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd, &ev) == -1)
+                {
+                    std::cout << "ERROR: epoll_ctl failed\n";
+                    removeClient(fd);
+                    continue;
+                }
             }
-
-
+            if (event_mask & EPOLLOUT)
+            {
+                Client& client = *all_clients[fd];
+                client.sendResponse();
+                if (client.getResponseSent())
+                {
+                    removeClient(fd);
+                    continue;
+                }
+            }
         }
     }
 }
