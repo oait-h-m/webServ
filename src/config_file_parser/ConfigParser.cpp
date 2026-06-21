@@ -184,6 +184,12 @@ void	ConfigParser::_parse_location_directive(LocationConfig &lc_conf) {
 		_parse_upload_store(lc_conf);
 	else if (key_word == "cgi_pass")
 		_parse_cgi_pass(lc_conf);
+	else if (key_word == "root")
+		_parse_root_directive(lc_conf);
+	else if (key_word == "client_max_body_size")
+		_parse_cmb_size_directive(lc_conf);
+	else if (key_word == "error_page")
+		_parse_error_page_directive(lc_conf);
 	else
 		throw(std::runtime_error("ConfigParser::_parse_location_directive(): Unknown directive name: " + key_word));
 }
@@ -272,7 +278,34 @@ void	ConfigParser::_parse_upload_store(LocationConfig &lc_conf) {
 }
 
 void	ConfigParser::_parse_cgi_pass(LocationConfig &lc_conf) {
+	std::string path;
+	std::string ext;
+	struct stat meta_data;
 
+	_match(TOK_WORD);
+	if (_peek().type != TOK_WORD)
+		throw(std::runtime_error("ConfigParser::_parse_cgi_pass: invalid parameter cgi extension expected"));
+	ext = _peek().word;
+	if (ext.size() < 2 || ext[0] != '.')
+		throw(std::runtime_error("ConfigParser::_parse_cgi_pass: invalid extension" + ext));
+	for (size_t i = 1; i < ext.size(); i += 1)
+		if (!std::isalnum(ext[i]))
+			throw(std::runtime_error("ConfigParser::_parse_cgi_pass: invalid extension" + ext));
+	lc_conf.cgi_extension = ext;
+	_consume();
+	if (_peek().type != TOK_WORD)
+		throw(std::runtime_error("ConfigParser::_parse_cgi_pass: invalid parameter path expected"));
+	path = _peek().word;
+
+	if (stat(path.c_str(), &meta_data) != 0)
+		throw(std::runtime_error("ConfigParser::_parse_cgi_pass: invalid cgi executable path"));
+	if (!S_ISREG(meta_data.st_mode))
+		throw(std::runtime_error("ConfigParser::_parse_cgi_pass: invalid cgi executable path"));
+	if (access(path.c_str(), X_OK))
+		throw(std::runtime_error("ConfigParser::_parse_cgi_pass: invalid cgi executable path"));
+	lc_conf.cgi_path = path;
+	_consume();
+	_match(TOK_SEM);
 }
 
 

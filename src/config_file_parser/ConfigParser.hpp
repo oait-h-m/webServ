@@ -53,16 +53,16 @@ class ConfigParser {
 				std::string			arg;
 				_consume();
 				if (_peek().type != TOK_WORD)
-					throw(std::runtime_error("ConfigParser::_parse_server_directive(): \
+					throw(std::runtime_error("ConfigParser::_parse_directive(): \
 								Invalid client_max_body_size directive args!"));
 				arg = _peek().word;
 				size_stream.str(arg);
 				size_stream >> size_container;
 				if (size_stream.fail() || !size_stream.eof())
-					throw(std::runtime_error("ConfigParser::_parse_server_directive(): \
+					throw(std::runtime_error("ConfigParser::_parse_cmb_size_directive(): \
 								Invalid size value: Non numerical"));
 				if (size_container < 0)
-					throw(std::runtime_error("ConfigParser::_parse_server_directive(): \
+					throw(std::runtime_error("ConfigParser::_parse_cmb_size_directive(): \
 								Invalid size number: Not positive"));
 				conf.client_max_body_size = static_cast<size_t>(size_container);
 				_consume();
@@ -74,14 +74,14 @@ class ConfigParser {
 				struct stat meta_data;
 				_consume();
 				if (_peek().type != TOK_WORD)
-					throw(std::runtime_error("ConfigParser::_parse_server_directive(): \
+					throw(std::runtime_error("ConfigParser::_parse_root_directive(): \
 								Invalid root dir parameter"));
 				root_dir = _peek().word;
 				if (stat(root_dir.c_str(), &meta_data))
-					throw(std::runtime_error("ConfigParser::_parse_server_directive(): \
+					throw(std::runtime_error("ConfigParser::_parse_root_directive(): \
 								Root directory path not found"));
 				if (!S_ISDIR(meta_data.st_mode))
-					throw(std::runtime_error("ConfigParser::_parse_server_directive(): \
+					throw(std::runtime_error("ConfigParser::_parse_root_directive(): \
 								Given path is not a directory"));
 				conf.root = root_dir;
 				_consume();
