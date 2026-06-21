@@ -1,10 +1,12 @@
 #include "Server.hpp"
 
-
 Server::Server(int port, const std::string &name, const std::string &root): port(port), server_name(name), root_dir(root)
 {}
 Server::~Server()
-{}
+{
+    if (listening_fd != -1)
+        close(listening_fd);
+}
 
 void Server::init()
 {
