@@ -10,14 +10,18 @@ struct LocationConfig {
 	std::string root;
 	std::vector<std::string> index_files;
 	std::vector<std::string> allowed_methods;
+	size_t client_max_body_size;
 	bool autoindex;
 	std::string upload_path;
 	std::string cgi_extension;
 	std::string cgi_path;
 	std::string redirection;
+	std::map<int, std::string> error_pages;
 	LocationConfig() {
 		index_files.clear();
 		allowed_methods.clear();
+		error_pages.clear();
+		client_max_body_size = 0;
 		autoindex = false;
 	}
 
@@ -34,6 +38,7 @@ struct ServerConfig
 	std::vector<LocationConfig> locations;
 	ServerConfig() {
 		port = 0;
+		client_max_body_size = 0;
 		error_pages.clear();
 		locations.clear();
 	}

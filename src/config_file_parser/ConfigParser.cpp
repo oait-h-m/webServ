@@ -1,19 +1,25 @@
 #include "./ConfigParser.hpp"
-#include <sstream>
 #include <iostream>
 #include <arpa/inet.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <cctype>
 
-ConfigParser::ConfigParser() {}
+ConfigParser::ConfigParser(): _pos(0) {}
 
-ConfigParser::ConfigParser(const ConfigParser &other) {}
+ConfigParser::ConfigParser(const ConfigParser &other) {
+	if (this != &other)
+		return ;
+}
 
 ConfigParser::~ConfigParser() {}
 
-ConfigParser::ConfigParser(const std::vector<Token> &tokens): _tokens(tokens), _pos(0) {}
-
 ConfigParser&	ConfigParser::operator=(const ConfigParser &other) {
+	/* This one should not be used, if anything changes, its going public
+	 * and a new logic needs to be impelemented accordingly
+	 */
+	if (this != &other)
+		return (*this);
 	return (*this);
 }
 
@@ -130,80 +136,6 @@ void	ConfigParser::_parse_server_name_directive(ServerConfig &sv_config) {
 	_match(TOK_SEM);
 }
 
-void	ConfigParser::_parse_cmb_size_directive(ServerConfig &sv_config) {
-		std::stringstream	size_stream;
-		long			size_container;
-		std::string			arg;
-		_consume();
-		if (_peek().type != TOK_WORD)
-			throw(std::runtime_error("ConfigParser::_parse_server_directive(): Invalid client_max_body_size directive args!"));
-		arg = _peek().word;
-		size_stream.str(arg);
-		size_stream >> size_container;
-		if (size_stream.fail() || !size_stream.eof())
-			throw(std::runtime_error("ConfigParser::_parse_server_directive(): Invalid size value: Non numerical"));
-		if (size_container < 0)
-			throw(std::runtime_error("ConfigParser::_parse_server_directive(): Invalid size number: Not positive"));
-		sv_config.client_max_body_size = static_cast<size_t>(size_container);
-		_consume();
-		_match(TOK_SEM);
-}
-
-void	ConfigParser::_parse_root_directive(ServerConfig &sv_config) {
-
-	std::string root_dir;
-	struct stat meta_data;
-	_consume();
-	if (_peek().type != TOK_WORD)
-		throw(std::runtime_error("ConfigParser::_parse_server_directive(): Invalid root dir parameter"));
-	root_dir = _peek().word;
-	if (stat(root_dir.c_str(), &meta_data))
-		throw(std::runtime_error("ConfigParser::_parse_server_directive(): Root directory path not found"));
-	if (!S_ISDIR(meta_data.st_mode))
-		throw(std::runtime_error("ConfigParser::_parse_server_directive(): Given path is not a directory"));
-	sv_config.root = root_dir;
-	_consume();
-	_match(TOK_SEM);
-}
-
-void	ConfigParser::_parse_error_page_directive(ServerConfig &sv_config) {
-	std::vector<std::string>	error_args(0);
-	std::string	file_path;
-	struct stat	meta_data;
-	_consume();
-	while (_peek().type != TOK_SEM) {
-		if (_peek().type != TOK_WORD)
-			throw(std::runtime_error("ConfigParser::_parse_error_page_directive(): Invalid error_page directive args"));
-		error_args.push_back(_peek().word);
-		_consume();
-	}
-	if (error_args.size() < 2)
-		throw(std::runtime_error("ConfigParser::_parse_error_page_directive(): Invalid error_page number of args"));
-	file_path = error_args[error_args.size() - 1];
-	if (stat(file_path.c_str(), &meta_data) != 0) {
-		throw std::runtime_error("ConfigParser::_parser_error_page_directive(): Error page file not found: " + file_path);
-	}
-	if (!S_ISREG(meta_data.st_mode)) {
-		throw std::runtime_error("ConfigParser::_parse_error_page_directive(): Error page path is not a file: " + file_path);
-	}
-	if (access(file_path.c_str(), R_OK) != 0) {
-		throw std::runtime_error("ConfigParser::_parse_error_page_directive(): Error page file is not readable: " + file_path);
-	}
-	for (size_t i = 0; i < error_args.size() - 1; i += 1) {
-	std::stringstream enum_stream;
-	long			enum_container;
-		enum_stream.str(error_args[i]);
-		enum_stream >> enum_container;
-		if (enum_stream.fail() || !enum_stream.eof())
-			throw(std::runtime_error("ConfigParser::_parse_error_page_directive(): Invalid enum number"));
-		if (enum_container < 0 || enum_container > 699)
-			throw(std::runtime_error("ConfigParser::_parse_error_page_directive(): enum number is out of range"));
-		if (enum_container > 599)
-			WARN("Error Number is a bit too large ! Try using a value less than 599");
-		sv_config.error_pages[enum_container] = file_path;
-	}
-	_match(TOK_SEM);
-}
 
 void	ConfigParser::_parse_server_directive(ServerConfig &sv_config) {
 	std::string	key_word = _peek().word;
@@ -221,6 +153,166 @@ void	ConfigParser::_parse_server_directive(ServerConfig &sv_config) {
 	else
 		throw(std::runtime_error("ConfigParser::_parse_server_directive(): Unkown directive name: " + key_word));
 }
+
+void	ConfigParser::_parse_location(ServerConfig &sv_config) {
+	LocationConfig	loc_conf;
+	std::string		path;
+
+	_match(TOK_WORD);
+	if (_peek().type != TOK_WORD)
+		throw(std::runtime_error("ConfigParser::_parse_location(): Invalid token type"));
+	loc_conf.path = _peek().word;
+	_consume();
+	loc_conf.root = sv_config.root;
+	loc_conf.client_max_body_size = sv_config.client_max_body_size;
+	loc_conf.error_pages = sv_config.error_pages;
+	
+	_match(TOK_OPEN_BR);
+	while (_peek().type != TOK_CLOSE_BR)
+		_parse_location_directive(loc_conf);
+	_match(TOK_CLOSE_BR);
+	sv_config.locations.push_back(loc_conf);
+}
+
+void	ConfigParser::_parse_location_directive(LocationConfig &lc_conf) {
+	std::string	key_word = _peek().word;
+	std::string arg;
+	if (key_word == "allowed_methods")
+		_parse_allowed_methods(lc_conf);
+	else if (key_word == "autoindex")
+		_parse_autoindex(lc_conf);
+	else if (key_word == "index")
+		_parse_index(lc_conf);
+	else if (key_word == "return")
+		_parse_return(lc_conf);
+	else if (key_word == "upload_store")
+		_parse_upload_store(lc_conf);
+	else if (key_word == "cgi_pass")
+		_parse_cgi_pass(lc_conf);
+	else if (key_word == "root")
+		_parse_root_directive(lc_conf);
+	else if (key_word == "client_max_body_size")
+		_parse_cmb_size_directive(lc_conf);
+	else if (key_word == "error_page")
+		_parse_error_page_directive(lc_conf);
+	else
+		throw(std::runtime_error("ConfigParser::_parse_location_directive(): Unknown directive name: " + key_word));
+}
+
+void	ConfigParser::_parse_allowed_methods(LocationConfig &lc_conf) {
+	lc_conf.allowed_methods.clear();
+	_match(TOK_WORD);
+
+	while (_peek().type != TOK_SEM) {
+		if (_peek().word == "GET")
+			lc_conf.allowed_methods.push_back("GET");
+		else if (_peek().word == "POST")
+			lc_conf.allowed_methods.push_back("POST");
+		else if (_peek().word == "DELETE")
+			lc_conf.allowed_methods.push_back("DELETE");
+		else
+			throw(std::runtime_error("ConfigParser::_parse_allowed_methods: Invalid allowed method!"));
+		_consume();
+	}
+	_match(TOK_SEM);
+}
+
+void	ConfigParser::_parse_autoindex(LocationConfig &lc_conf) {
+	_match(TOK_WORD);
+	if (_peek().type != TOK_WORD)
+		throw(std::runtime_error("ConfigParser::_parse_autoindex: No valid argument was provided!"));
+	if (_peek().word == "on")
+		lc_conf.autoindex = true;
+	else if (_peek().word == "off")
+		lc_conf.autoindex = false;
+	else
+		throw(std::runtime_error("ConfigParser::_parse_autoindex: Invalid directive argument!" + _peek().word));
+	_consume();
+	_match(TOK_SEM);
+}
+
+void	ConfigParser::_parse_index(LocationConfig &lc_conf) {
+	lc_conf.index_files.clear();
+	_match(TOK_WORD);
+	while (_peek().type != TOK_SEM) {
+		if (_peek().type != TOK_WORD)
+			throw(std::runtime_error("ConfigParser::_parse_index(): Invalid token type, Word expected"));
+		lc_conf.index_files.push_back(_peek().word);
+		_consume();
+	}
+	_match(TOK_SEM);
+}
+
+void	ConfigParser::_parse_return(LocationConfig &lc_conf) {
+	std::string return_code;
+
+	_match(TOK_WORD);
+	if (_peek().type != TOK_WORD)
+		throw(std::runtime_error("ConfigParser::_parse_return: Invalid parameter"));
+	return_code = _peek().word;
+	if (return_code.size() != 3)
+		throw(std::runtime_error("ConfigParser::_parse_return: Invalid parameter"));
+	if (return_code[0] != '3' || !isdigit(return_code[1]) || !isdigit(return_code[2]))
+		throw(std::runtime_error("ConfigParser::_parse_return: invalid return value"));
+	_consume();
+	if (_peek().type != TOK_WORD)
+		throw(std::runtime_error("ConfigParser::_parse_return: invalid parameter, URI expected"));
+	return_code += " " +  _peek().word;
+	lc_conf.redirection = return_code;
+	_consume();
+	_match(TOK_SEM);
+}
+
+void	ConfigParser::_parse_upload_store(LocationConfig &lc_conf) {
+
+	std::string path;
+	struct stat meta_data;
+
+	_match(TOK_WORD);
+	if (_peek().type != TOK_WORD)
+		throw(std::runtime_error("ConfigParser::_parse_upload_store: invalid parameter path expected"));
+	path = _peek().word;
+
+	if (stat(path.c_str(), &meta_data) != 0)
+		throw(std::runtime_error("ConfigParser::_parse_upload_store: invalid upload path"));
+	if (!S_ISDIR(meta_data.st_mode))
+		throw(std::runtime_error("ConfigParser::_parse_upload_store: given store path is not a directory"));
+	lc_conf.upload_path = path;
+	_consume();
+	_match(TOK_SEM);
+}
+
+void	ConfigParser::_parse_cgi_pass(LocationConfig &lc_conf) {
+	std::string path;
+	std::string ext;
+	struct stat meta_data;
+
+	_match(TOK_WORD);
+	if (_peek().type != TOK_WORD)
+		throw(std::runtime_error("ConfigParser::_parse_cgi_pass: invalid parameter cgi extension expected"));
+	ext = _peek().word;
+	if (ext.size() < 2 || ext[0] != '.')
+		throw(std::runtime_error("ConfigParser::_parse_cgi_pass: invalid extension" + ext));
+	for (size_t i = 1; i < ext.size(); i += 1)
+		if (!std::isalnum(ext[i]))
+			throw(std::runtime_error("ConfigParser::_parse_cgi_pass: invalid extension" + ext));
+	lc_conf.cgi_extension = ext;
+	_consume();
+	if (_peek().type != TOK_WORD)
+		throw(std::runtime_error("ConfigParser::_parse_cgi_pass: invalid parameter path expected"));
+	path = _peek().word;
+
+	if (stat(path.c_str(), &meta_data) != 0)
+		throw(std::runtime_error("ConfigParser::_parse_cgi_pass: invalid cgi executable path"));
+	if (!S_ISREG(meta_data.st_mode))
+		throw(std::runtime_error("ConfigParser::_parse_cgi_pass: invalid cgi executable path"));
+	if (access(path.c_str(), X_OK))
+		throw(std::runtime_error("ConfigParser::_parse_cgi_pass: invalid cgi executable path"));
+	lc_conf.cgi_path = path;
+	_consume();
+	_match(TOK_SEM);
+}
+
 
 WebServerConfig ConfigParser::generate_config(std::string &file_path) {
 	Lexer	lexer(file_path);
