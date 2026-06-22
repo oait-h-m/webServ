@@ -4,7 +4,12 @@
 Core::Core(std::string config_path):epoll_fd(-1)
 {
     ConfigParser parser;
-    parser.generate_config(config_path);
+    try{
+        server_config = parser.generate_config(config_path);
+    }
+    catch(std::exception& e){
+        std::cout << e.what() << std::endl;
+    }
 }
 
 Core::~Core()
