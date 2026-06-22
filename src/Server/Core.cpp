@@ -172,10 +172,7 @@ void Core::run()
                 Client& client = *all_clients[fd];
                 client.sendResponse();
                 if (client.getResponseSent())
-                {
                     removeClient(fd);
-                    continue;
-                }
             }
         }
     }
