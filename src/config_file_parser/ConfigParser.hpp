@@ -69,20 +69,11 @@ class ConfigParser {
 			}
 		template <typename T>
 			void	_parse_root_directive(T &conf) {
-				std::string root_dir;
-				struct stat meta_data;
 				_consume();
 				if (_peek().type != TOK_WORD)
 					throw(std::runtime_error("ConfigParser::_parse_root_directive(): \
 								Invalid root dir parameter"));
-				root_dir = _peek().word;
-				if (stat(root_dir.c_str(), &meta_data))
-					throw(std::runtime_error("ConfigParser::_parse_root_directive(): \
-								Root directory path not found"));
-				if (!S_ISDIR(meta_data.st_mode))
-					throw(std::runtime_error("ConfigParser::_parse_root_directive(): \
-								Given path is not a directory"));
-				conf.root = root_dir;
+				conf.root = _peek().word;
 				_consume();
 				_match(TOK_SEM);
 			}
