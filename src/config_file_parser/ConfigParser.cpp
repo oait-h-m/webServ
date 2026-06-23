@@ -150,6 +150,8 @@ void	ConfigParser::_parse_server_directive(ServerConfig &sv_config) {
 		_parse_root_directive(sv_config);
 	else if (key_word == "error_page")
 		_parse_error_page_directive(sv_config);
+	else if (key_word == "index")
+		_parse_index(sv_config);
 	else
 		throw(std::runtime_error("ConfigParser::_parse_server_directive(): Unkown directive name: " + key_word));
 }
@@ -231,17 +233,6 @@ void	ConfigParser::_parse_autoindex(LocationConfig &lc_conf) {
 	_match(TOK_SEM);
 }
 
-void	ConfigParser::_parse_index(LocationConfig &lc_conf) {
-	lc_conf.index_files.clear();
-	_match(TOK_WORD);
-	while (_peek().type != TOK_SEM) {
-		if (_peek().type != TOK_WORD)
-			throw(std::runtime_error("ConfigParser::_parse_index(): Invalid token type, Word expected"));
-		lc_conf.index_files.push_back(_peek().word);
-		_consume();
-	}
-	_match(TOK_SEM);
-}
 
 void	ConfigParser::_parse_return(LocationConfig &lc_conf) {
 	std::string return_code;

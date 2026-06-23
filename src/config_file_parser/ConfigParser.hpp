@@ -32,7 +32,6 @@ class ConfigParser {
 		// Location config directive dispatchers
 		void	_parse_allowed_methods(LocationConfig &lc_cnof);
 		void	_parse_autoindex(LocationConfig &lc_conf);
-		void	_parse_index(LocationConfig &lc_conf);
 		void	_parse_return(LocationConfig &lc_conf);
 		void	_parse_upload_store(LocationConfig &lc_conf);
 		void	_parse_cgi_pass(LocationConfig &lc_conf);
@@ -131,6 +130,19 @@ class ConfigParser {
 						WARN("Error Number is a bit too large ! \
 								Try using a value less than 599");
 					conf.error_pages[enum_container] = file_path;
+				}
+				_match(TOK_SEM);
+			}
+		template <typename T>
+			void _parse_index(T &conf) {
+				conf.index_files.clear();
+				_match(TOK_WORD);
+				while (_peek().type != TOK_SEM) {
+					if (_peek().type != TOK_WORD)
+						throw(std::runtime_error("ConfigParser::_parse_index(): \
+									Invalid token type, Word expected"));
+					conf.index_files.push_back(_peek().word);
+					_consume();
 				}
 				_match(TOK_SEM);
 			}
