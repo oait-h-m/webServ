@@ -1,4 +1,42 @@
-#include "Delete.hpp"
+#include "methods.hpp"
 
 HttpResponse Delete::execute(const HttpRequest& request)
-{}
+{
+    HttpResponse response;
+    std::string uri = request.getUri();
+
+    if (uri.find("..") != std::string::npos)
+    {
+        response.setStatus(403);
+        response.setBody("403 Forbidden");
+        return response;
+    }
+
+    std::string path = "./www" + uri;
+    if (isDirectory(path))
+    {
+        response.setStatus(403);
+        response.setBody("403 Forbidden");
+        return response;
+    }
+
+    std::ifstream file(path.c_str());
+    if (!file.is_open())
+    {
+        response.setBody("404 File Not Found");
+        response.setStatus(404);
+        return response;
+    }
+    file.close();
+
+    if (remove(path.c_str()) != 0)
+    {
+        response.setStatus(500);
+        response.setBody("500 inernal server");
+        return response;
+    }
+
+    response.setStatus(200);
+    response.setBody("file deleted successfully");
+    return response;
+}
