@@ -1,27 +1,38 @@
 #include "Core.hpp"
 
 
-Core::Core():epoll_fd(-1), n_servers(0)
-{}
+Core::Core(std::string config_path):epoll_fd(-1)
+{
+    ConfigParser parser;
+    try{
+        server_config = parser.generate_config(config_path);
+    }
+    catch(std::exception& e){
+        std::cout << e.what() << std::endl;
+    }
+}
 
 Core::~Core()
-{}
+{
+    for (std::vector<Server*>::iterator it = servers.begin(); it != servers.end(); ++it)
+        delete *it;
+    servers.clear();
+
+    for (std::map<int, Client*>::iterator it = all_clients.begin(); it != all_clients.end(); ++it)
+        delete it->second;
+    all_clients.clear();
+
+    if (epoll_fd != -1)
+        close(epoll_fd);
+}
 
 void Core::creatServers()
 {
-    std::vector<int>::iterator p_it;
-    p_it = s_ports.begin();
-    std::vector<std::string>::iterator n_it;
-    n_it = s_names.begin();
-    std::vector<std::string>::iterator r_it;
-    r_it = s_roots.begin();
-    for (int i = 0; i < n_servers; i++)
+    std::vector<ServerConfig>::iterator it;
+    for (it = server_config.server_configs.begin(); it != server_config.server_configs.end(); it++)
     {
-        Server *server = new Server(*p_it, *n_it, *r_it);
+        Server *server = new Server(it->port, it->server_name, it->root);
         servers.push_back(server);
-        ++p_it;
-        ++n_it;
-        ++r_it;
     }
 }
 
@@ -94,6 +105,8 @@ void Core::removeClient(int fd)
 
     epoll_ctl(epoll_fd, EPOLL_CTL_DEL, fd, NULL);
     close(fd);
+    delete all_clients[fd];
+    all_clients.erase(fd);
 }
 
 void Core::run()
@@ -104,8 +117,15 @@ void Core::run()
     for (it = servers.begin(); it != servers.end(); it++)
         (*it)->init();
     
-    setupEpoll();
-
+    try
+    {
+        setupEpoll();
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+        return ;
+    }
     struct epoll_event events[10000];
     while (true)
     {
@@ -119,12 +139,17 @@ void Core::run()
             int fd = events[i].data.fd;
             uint32_t event_mask = events[i].events;
 
+            if (event_mask & (EPOLLERR | EPOLLHUP))
+            {
+                removeClient(fd);
+                continue;
+            }
             if (isListeningFd(fd))
             {
                 acceptClient(getServer(fd));
                 continue;
             }
-            else if (event_mask & EPOLLIN)
+            if (event_mask & EPOLLIN)
             {
                 Client& client = *all_clients[fd];
                 if (client.readRequest() <= 0)
@@ -136,9 +161,24 @@ void Core::run()
                 if (!client.getRequestComplete())
                     continue;
                 client.handleRequest();
+                epoll_event ev;
+                ev.events = EPOLLOUT;
+                ev.data.fd = fd;
+
+                if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, fd, &ev) == -1)
+                {
+                    std::cout << "ERROR: epoll_ctl failed\n";
+                    removeClient(fd);
+                    continue;
+                }
             }
-
-
+            if (event_mask & EPOLLOUT)
+            {
+                Client& client = *all_clients[fd];
+                client.sendResponse();
+                if (client.getResponseSent())
+                    removeClient(fd);
+            }
         }
     }
 }

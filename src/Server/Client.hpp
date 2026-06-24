@@ -22,6 +22,7 @@ private:
     HttpRequest request;
     HttpResponse response;
     bool request_complete;
+    bool response_sent;
     
 public:
     Client(int fd, Server *server); 
@@ -33,9 +34,11 @@ public:
     std::string getRequestBuffer();
     void    setRequest(bool request_complete);
     bool getRequestComplete();
-    HttpRequest getRequest();
+    HttpRequest& getRequest();
     int getSocketFd();
     Server* getServer();
+    bool getResponseSent();
+    void setResponseSent(bool value);
 };
 
 #endif

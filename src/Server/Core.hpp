@@ -8,15 +8,13 @@
 #include "Client.hpp"
 #include <sys/epoll.h>
 #include <unistd.h>
+#include "../config_file_parser/ConfigParser.hpp"
 
 
 class Core {
 private:
     int epoll_fd;
-    int n_servers;
-    std::vector<int> s_ports;
-    std::vector<std::string> s_names;
-    std::vector<std::string> s_roots;
+    WebServerConfig server_config;
     std::vector<Server*> servers;
     std::map<int, Client*> all_clients;
     
@@ -28,7 +26,7 @@ private:
     void removeClient(int fd);
     
 public:
-    Core();
+    Core(std::string config_path);
     ~Core();
     
     void run(); 
