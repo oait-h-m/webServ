@@ -7,7 +7,7 @@
 
 ConfigParser::ConfigParser(): _pos(0) {}
 
-ConfigParser::ConfigParser(const ConfigParser &other) {}
+ConfigParser::ConfigParser(const ConfigParser &other) { UNUSED(other); }
 
 ConfigParser::~ConfigParser() {}
 
@@ -58,6 +58,8 @@ void ConfigParser::parse() {
 		if (current.type == TOK_EOF)
 			return ;
 	}
+	if (_global_config.server_configs.size() == 0)
+			throw(std::runtime_error("ConfigParser::parse(): No server configs were given!, You might wanna fix that"));
 	return ;
 }
 
@@ -177,7 +179,10 @@ void	ConfigParser::_parse_location(ServerConfig &sv_config) {
 	while (_peek().type != TOK_CLOSE_BR)
 		_parse_location_directive(loc_conf);
 	_match(TOK_CLOSE_BR);
-	sv_config.locations.push_back(loc_conf);
+	if (sv_config.locations.find(loc_conf.path) != sv_config.locations.end())
+		WARN("ConfigParser::_parse_location(): Duplicate location config, this one is ignored");
+	else
+		sv_config.locations[loc_conf.path] = loc_conf;
 }
 
 void	ConfigParser::_parse_location_directive(LocationConfig &lc_conf) {

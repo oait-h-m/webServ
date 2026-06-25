@@ -3,6 +3,7 @@
 # define WARN(string) \
 	std::cout << "\033[33m" << "[WARNING] " <<\
 	string << "\033[0m" << std::endl
+# define UNUSED(X) (void)(X);
 
 #include "./InternalConfigs.hpp"
 #include "./Lexer.hpp"
@@ -82,7 +83,6 @@ class ConfigParser {
 			void	_parse_error_page_directive(T &conf) {
 				std::vector<std::string>	error_args(0);
 				std::string	file_path;
-				struct stat	meta_data;
 				_consume();
 				while (_peek().type != TOK_SEM) {
 					if (_peek().type != TOK_WORD)
