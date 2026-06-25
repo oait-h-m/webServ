@@ -28,6 +28,7 @@ struct LocationConfig {
 
 };
 
+
 struct ServerConfig
 {
 	std::string host;

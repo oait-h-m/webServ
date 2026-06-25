@@ -19,9 +19,7 @@ class Lexer {
 		std::ifstream _config_file;
 		std::string _config_file_path;
 		std::vector<Token> _tokens;
-		void _strip_comments(std::string &buffer);
 		bool _is_symbol(char c);
-		TokenType _identify_token(const std::string &word);
 		size_t	extract_token(std::string &line, size_t peek, Token &token);
 
 	public:

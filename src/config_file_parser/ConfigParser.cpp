@@ -144,7 +144,6 @@ void	ConfigParser::_parse_server_name_directive(ServerConfig &sv_config) {
 
 void	ConfigParser::_parse_server_directive(ServerConfig &sv_config) {
 	std::string	key_word = _peek().word;
-	std::string arg;
 	if (key_word == "listen")
 		_parse_listen_directive(sv_config);
 	else if (key_word == "server_name")
@@ -158,7 +157,7 @@ void	ConfigParser::_parse_server_directive(ServerConfig &sv_config) {
 	else if (key_word == "index")
 		_parse_index(sv_config);
 	else
-		throw(std::runtime_error("ConfigParser::_parse_server_directive(): Unkown directive name: " + key_word));
+		throw(std::runtime_error("ConfigParser::_parse_server_directive(): Unknown directive name: " + key_word));
 }
 
 void	ConfigParser::_parse_location(ServerConfig &sv_config) {
