@@ -28,6 +28,7 @@ struct LocationConfig {
 
 };
 
+
 struct ServerConfig
 {
 	std::string host;
@@ -37,7 +38,7 @@ struct ServerConfig
 	std::vector<std::string> index_files;
 	std::map<int, std::string> error_pages;
 	size_t client_max_body_size;
-	std::vector<LocationConfig> locations;
+	std::map<std::string, LocationConfig> locations;
 	ServerConfig() {
 		port = 0;
 		client_max_body_size = 0;
