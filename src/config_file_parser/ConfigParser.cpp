@@ -7,10 +7,7 @@
 
 ConfigParser::ConfigParser(): _pos(0) {}
 
-ConfigParser::ConfigParser(const ConfigParser &other) {
-	if (this != &other)
-		return ;
-}
+ConfigParser::ConfigParser(const ConfigParser &other) {}
 
 ConfigParser::~ConfigParser() {}
 
@@ -76,6 +73,10 @@ void	ConfigParser::_parse_server() {
 			_parse_server_directive(sv_config);
 	}
 	_match(TOK_CLOSE_BR);
+	if (sv_config.port == 0)
+		WARN("There was no listen directive, no port number given, You might wanna fix that!");
+	if (sv_config.host.empty())
+		WARN("Empty host provided, or maybe no listen directive was given, You might wanna fix that!");
 	_global_config.server_configs.push_back(sv_config);
 }
 
@@ -94,6 +95,8 @@ void	ConfigParser::_validate_interface_port(std::string &input, ServerConfig &sv
 	else {
 		std::getline(stream, host, ':');
 		std::getline(stream, port_str, ':');
+		if (!stream.eof())
+			throw(std::runtime_error("ConfigParser::_validate_interface_port(): Invalid format: " + input));
 	}
 	port_stream.str(port_str);
 	port_stream >> port_container;
@@ -117,7 +120,7 @@ void	ConfigParser::_parse_listen_directive(ServerConfig &sv_config) {
 	std::string	arg;
 	_consume();
 	if (_peek().type != TOK_WORD)
-		throw(std::runtime_error("ConfigParser::_parse_server_directive(): Invalid listen directive args!"));
+		throw(std::runtime_error("ConfigParser::_parse_listen_directive(): Invalid listen directive args!"));
 	arg = _peek().word;
 	_validate_interface_port(arg, sv_config);
 	_consume();
@@ -128,9 +131,9 @@ void	ConfigParser::_parse_listen_directive(ServerConfig &sv_config) {
 void	ConfigParser::_parse_server_name_directive(ServerConfig &sv_config) {
 	_consume();
 	if (_peek().type != TOK_WORD)
-		throw(std::runtime_error("ConfigParser::_parse_server_directive(): Invalid  server_name directive args!"));
+		throw(std::runtime_error("ConfigParser::_parse_server_name_directive(): Invalid  server_name directive args!"));
 	if (_peek().word.size() > 255)
-		throw(std::runtime_error("ConfigParser::_parse_server_directive(): Domain name is too long!"));
+		throw(std::runtime_error("ConfigParser::_parse_server_name_directive(): Domain name is too long!"));
 	sv_config.server_name = _peek().word;
 	_consume();
 	_match(TOK_SEM);
@@ -168,6 +171,7 @@ void	ConfigParser::_parse_location(ServerConfig &sv_config) {
 	loc_conf.root = sv_config.root;
 	loc_conf.client_max_body_size = sv_config.client_max_body_size;
 	loc_conf.error_pages = sv_config.error_pages;
+	loc_conf.index_files = sv_config.index_files;
 	
 	_match(TOK_OPEN_BR);
 	while (_peek().type != TOK_CLOSE_BR)
@@ -243,7 +247,7 @@ void	ConfigParser::_parse_return(LocationConfig &lc_conf) {
 	return_code = _peek().word;
 	if (return_code.size() != 3)
 		throw(std::runtime_error("ConfigParser::_parse_return: Invalid parameter"));
-	if (return_code[0] != '3' || !isdigit(return_code[1]) || !isdigit(return_code[2]))
+	if (return_code[0] != '3' || !std::isdigit(return_code[1]) || !std::isdigit(return_code[2]))
 		throw(std::runtime_error("ConfigParser::_parse_return: invalid return value"));
 	_consume();
 	if (_peek().type != TOK_WORD)
@@ -309,6 +313,8 @@ WebServerConfig ConfigParser::generate_config(std::string &file_path) {
 	Lexer	lexer(file_path);
 
 	_tokens = lexer.tokenizer();
+	_pos = 0;
+	_global_config = WebServerConfig();
 	parse();
 	return (_global_config);
 }

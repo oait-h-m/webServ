@@ -7,6 +7,7 @@
 #include "./InternalConfigs.hpp"
 #include "./Lexer.hpp"
 #include <sstream>
+#include <stdexcept>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <iostream>
@@ -94,18 +95,6 @@ class ConfigParser {
 					throw(std::runtime_error("ConfigParser::_parse_error_page_directive(): \
 								Invalid error_page number of args"));
 				file_path = error_args[error_args.size() - 1];
-				if (stat(file_path.c_str(), &meta_data) != 0) {
-					throw std::runtime_error("ConfigParser::_parser_error_page_directive(): \
-							Error page file not found: " + file_path);
-				}
-				if (!S_ISREG(meta_data.st_mode)) {
-					throw std::runtime_error("ConfigParser::_parse_error_page_directive(): \
-							Error page path is not a file: " + file_path);
-				}
-				if (access(file_path.c_str(), R_OK) != 0) {
-					throw std::runtime_error("ConfigParser::_parse_error_page_directive(): \
-							Error page file is not readable: " + file_path);
-				}
 				for (size_t i = 0; i < error_args.size() - 1; i += 1) {
 					std::stringstream enum_stream;
 					long			enum_container;
