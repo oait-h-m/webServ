@@ -162,7 +162,6 @@ void	ConfigParser::_parse_server_directive(ServerConfig &sv_config) {
 
 void	ConfigParser::_parse_location(ServerConfig &sv_config) {
 	LocationConfig	loc_conf;
-	std::string		path;
 
 	_match(TOK_WORD);
 	if (_peek().type != TOK_WORD)

@@ -17,7 +17,7 @@ void Lexer::open_config_file(const std::string &file_path) {
 	_config_file.open(file_path.c_str());
 
 	if (_config_file.is_open() == false)
-		throw(std::runtime_error("Failed to to open config file!"));
+		throw(std::runtime_error("Failed to open config file!"));
 }
 
 bool Lexer::_is_symbol(char c) {
