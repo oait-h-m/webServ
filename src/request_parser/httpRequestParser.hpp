@@ -20,11 +20,12 @@ private:
     std::string body;
     int statusCode;
 
+    HttpRequest(const HttpRequest &other);
+    HttpRequest &operator=(const HttpRequest &other);
 
 public:
     HttpRequest();
-    HttpRequest(const HttpRequest &other);
-    HttpRequest &operator=(const HttpRequest &other);
+    ~HttpRequest();
     void parse(Client &client);
 
     const std::string& getMethod() const;
