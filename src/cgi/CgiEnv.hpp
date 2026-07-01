@@ -3,6 +3,7 @@
 
 class CgiEnv {
 	private:
+		char **envp; /* The container for Environment variables */
 	public:
 
 };
